@@ -16,7 +16,7 @@ app.use(express.json());
 
 // 4. routes
 app.post("/signup", async (req, res) => {
-  console.log("🔥 SIGNUP ROUTE HIT");
+  console.log("REQ BODY:", req.body);
 
   try {
     const { name, email, password } = req.body;
