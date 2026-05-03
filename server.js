@@ -84,9 +84,9 @@ app.post("/login", async (req, res) => {
     }
 
     // generate token
-    const token = jwt.sign({ id: user._id, role: user.role }, "secretkey", {
-      expiresIn: "1d",
-    });
+   const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+  expiresIn: "1d",
+});
 
     res.json({
       message: "Login successful",
@@ -169,10 +169,10 @@ app.get("/my-tasks", auth, async (req, res) => {
     let tasks;
 
     if (req.user.role === "Admin") {
-      // 👇 Admin sees tasks they created
+      //  Admin sees tasks they created
       tasks = await Task.find({ createdBy: req.user.id }).sort({ createdAt: -1 });
     } else {
-      // 👇 Member sees assigned tasks
+      //  Member sees assigned tasks
       tasks = await Task.find({ assignedTo: req.user.id }).sort({ createdAt: -1 });
     }
 
@@ -209,7 +209,7 @@ app.put("/tasks/:id", auth, async (req, res) => {
       });
     }
 
-    // ✅ Update status
+    //  Update status
     task.status = status || task.status;
 
     await task.save();
