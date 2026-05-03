@@ -16,7 +16,7 @@ app.use(express.json());
 
 // 4. routes
 app.post("/signup", async (req, res) => {
-  console.log("REQ BODY:", req.body);
+  console.log("🔥 SIGNUP ROUTE HIT");
 
   try {
     const { name, email, password } = req.body;
@@ -237,10 +237,7 @@ app.delete("/tasks/:id", auth, async (req, res) => {
 });
 
 // 5. DB connection
-mongoose
-  .connect(
-    "mongodb+srv://admin:admin123@cluster0.88xka3f.mongodb.net/test?retryWrites=true&w=majority",
-  )
+  mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log(" DB Connected"))
   .catch((err) => console.log(" DB ERROR:", err.message));
 
