@@ -14,6 +14,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.send("API is running 🚀");
+});
+
 // 4. routes
 app.post("/signup", async (req, res) => {
   console.log("🔥 SIGNUP ROUTE HIT");
