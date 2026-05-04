@@ -5,6 +5,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken"); // ✅ MOVED TO TOP
 const User = require("./models/User");
 
 // 2. create app
@@ -54,11 +55,9 @@ app.post("/signup", async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ message: "Email already exists" });
     }
-
     res.status(500).json({ error: err.message });
   }
 });
-const jwt = require("jsonwebtoken");
 
 app.post("/login", async (req, res) => {
   console.log("🔐 LOGIN ROUTE HIT");
@@ -84,9 +83,12 @@ app.post("/login", async (req, res) => {
     }
 
     // generate token
-   const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-  expiresIn: "1d",
-});
+    console.log("JWT_SECRET:", process.env.JWT_SECRET); // ✅ DEBUG
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.json({
       message: "Login successful",
@@ -98,9 +100,11 @@ app.post("/login", async (req, res) => {
       },
     });
   } catch (err) {
+    console.log("LOGIN ERROR:", err.message); // ✅ DEBUG
     res.status(500).json({ error: err.message });
   }
 });
+
 app.get("/profile", auth, (req, res) => {
   res.json({
     message: "Protected data accessed",
@@ -144,14 +148,13 @@ app.post("/tasks", auth, async (req, res) => {
   }
 });
 
-//  Get tasks created by user
+// Get tasks created by user
 app.get("/tasks", auth, async (req, res) => {
   try {
-    const { project } = req.query; 
+    const { project } = req.query;
 
     let filter = { createdBy: req.user.id };
 
-    // 🔥 filter by project if provided
     if (project) {
       filter.project = project;
     }
@@ -169,10 +172,8 @@ app.get("/my-tasks", auth, async (req, res) => {
     let tasks;
 
     if (req.user.role === "Admin") {
-      //  Admin sees tasks they created
       tasks = await Task.find({ createdBy: req.user.id }).sort({ createdAt: -1 });
     } else {
-      //  Member sees assigned tasks
       tasks = await Task.find({ assignedTo: req.user.id }).sort({ createdAt: -1 });
     }
 
@@ -193,7 +194,6 @@ app.put("/tasks/:id", auth, async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // ✅ Safety: assignedTo might be null
     const isCreator = task.createdBy?.toString() === req.user.id;
     const isAssignee =
       task.assignedTo && task.assignedTo.toString() === req.user.id;
@@ -202,14 +202,12 @@ app.put("/tasks/:id", auth, async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    
     if (task.dueDate && new Date(task.dueDate) < new Date()) {
       return res.status(400).json({
         message: "Deadline passed. Cannot update task.",
       });
     }
 
-    //  Update status
     task.status = status || task.status;
 
     await task.save();
@@ -219,6 +217,7 @@ app.put("/tasks/:id", auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 app.delete("/tasks/:id", auth, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -227,7 +226,6 @@ app.delete("/tasks/:id", auth, async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // only creator can delete
     if (task.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
@@ -241,7 +239,7 @@ app.delete("/tasks/:id", auth, async (req, res) => {
 });
 
 // 5. DB connection
-  mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log(" DB Connected"))
   .catch((err) => console.log(" DB ERROR:", err.message));
 
