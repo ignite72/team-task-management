@@ -10,7 +10,7 @@ module.exports = (req, res, next) => {
 
     const token = header.split(" ")[1];
 
-    const decoded = jwt.verify(token, "secretkey");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     console.log("Decoded token:", decoded); 
 
