@@ -1,4 +1,5 @@
 // 1. imports
+require("dotenv").config(); // ✅ ADD THIS FIRST LINE
 const Task = require("./models/Task");
 const auth = require("./middleware/auth");
 const express = require("express");
